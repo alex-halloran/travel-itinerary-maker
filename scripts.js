@@ -1,6 +1,7 @@
 // Global variables
 let map;
 let placesService;
+let autocompleteService;
 let geocoder;
 let markers = [];
 let currentPlace = null;
@@ -13,88 +14,96 @@ let currentItinerary = {
 };
 
 // Initialize the map
-function initMap() {
+async function initMap() {
     // Default location (New York City)
     const defaultLocation = { lat: 40.7128, lng: -74.0060 };
-    
-    // Create the map
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: defaultLocation,
-        zoom: 12,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-    });
-    
-    // Initialize places service and geocoder
-    placesService = new google.maps.places.PlacesService(map);
-    geocoder = new google.maps.Geocoder();
-    
-    // Initialize the search box
-    const searchInput = document.getElementById('place-search');
-    const searchBox = new google.maps.places.SearchBox(searchInput);
-    
-    // Bias the SearchBox results towards current map's viewport
-    map.addListener('bounds_changed', () => {
-        searchBox.setBounds(map.getBounds());
-    });
-    
-    // Listen for the event fired when the user selects a prediction
-    searchBox.addListener('places_changed', () => {
-        const places = searchBox.getPlaces();
+
+    try {
+        // Create the map
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: defaultLocation,
+            zoom: 12,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true,
+        });
         
-        if (places.length === 0) {
+        // Initialize Places services using the new API format
+        placesService = new google.maps.places.PlacesService(map);
+        autocompleteService = new google.maps.places.AutocompleteService();
+        geocoder = new google.maps.Geocoder();
+        
+        // Initialize the search box using the new Places API
+        initializeSearchBox();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Set today's date for the date inputs
+        const today = new Date();
+        const todayFormatted = formatDate(today);
+        document.getElementById('start-date').value = todayFormatted;
+        
+        // Set end date to a week later by default
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 7);
+        document.getElementById('end-date').value = formatDate(nextWeek);
+        
+        // Update the current itinerary dates
+        currentItinerary.startDate = todayFormatted;
+        currentItinerary.endDate = formatDate(nextWeek);
+        
+        // Initialize days based on date range
+        updateDays();
+        
+        // Load saved itineraries
+        loadSavedItineraries();
+    } catch (error) {
+        console.error("Error initializing map:", error);
+        alert("There was an error initializing the map. Please check your API key and try again.");
+    }
+}
+
+// Initialize the Places search box with new API
+function initializeSearchBox() {
+    const searchInput = document.getElementById('place-search');
+    
+    // Create the search box using the new Autocomplete API
+    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+        fields: ['place_id', 'geometry', 'name', 'formatted_address'],
+    });
+    
+    // Bias the results to the current map viewport
+    autocomplete.bindTo('bounds', map);
+    
+    // Listen for place selection
+    autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        
+        if (!place.geometry || !place.geometry.location) {
+            // User entered the name of a place that was not suggested
+            // or the place details request failed
+            console.warn("Returned place contains no geometry");
             return;
         }
         
         // Clear old markers
         clearMarkers();
         
-        // For each place, get the icon, name and location
-        const bounds = new google.maps.LatLngBounds();
+        // Add marker for the selected place
+        addMarker(place);
         
-        places.forEach(place => {
-            if (!place.geometry || !place.geometry.location) {
-                console.log("Returned place contains no geometry");
-                return;
-            }
-            
-            // Create a marker for each place
-            addMarker(place);
-            
-            if (place.geometry.viewport) {
-                // Only geocodes have viewport
-                bounds.union(place.geometry.viewport);
-            } else {
-                bounds.extend(place.geometry.location);
-            }
-        });
+        // Adjust map view
+        if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+        } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17);
+        }
         
-        map.fitBounds(bounds);
+        // Show place details
+        getPlaceDetails(place.place_id);
     });
-    
-    // Set up event listeners
-    setupEventListeners();
-    
-    // Set today's date for the date inputs
-    const today = new Date();
-    const todayFormatted = formatDate(today);
-    document.getElementById('start-date').value = todayFormatted;
-    
-    // Set end date to a week later by default
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
-    document.getElementById('end-date').value = formatDate(nextWeek);
-    
-    // Update the current itinerary dates
-    currentItinerary.startDate = todayFormatted;
-    currentItinerary.endDate = formatDate(nextWeek);
-    
-    // Initialize days based on date range
-    updateDays();
-    
-    // Load saved itineraries
-    loadSavedItineraries();
 }
 
 // Format date to YYYY-MM-DD
@@ -134,18 +143,19 @@ function setupEventListeners() {
         updateDays();
     });
     
-    // Search button click
+    // Search button click (manual search using updated API)
     document.getElementById('search-btn').addEventListener('click', function() {
         const searchInput = document.getElementById('place-search');
         if (searchInput.value.trim() !== '') {
-            searchPlaces(searchInput.value);
+            performTextSearch(searchInput.value);
         }
     });
     
     // Place search on enter key
     document.getElementById('place-search').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
-            searchPlaces(this.value);
+            e.preventDefault(); // Prevent form submission
+            performTextSearch(this.value);
         }
     });
     
@@ -270,14 +280,16 @@ function updateDays() {
     }
 }
 
-// Search for places
-function searchPlaces(query) {
+// Perform text search using updated Places API
+function performTextSearch(query) {
+    // Using TextSearch request with the Places Service
     const request = {
         query: query,
-        fields: ['name', 'geometry', 'place_id', 'formatted_address', 'rating', 'user_ratings_total', 'photos']
+        fields: ['place_id', 'name', 'geometry', 'formatted_address']
     };
     
-    placesService.findPlaceFromQuery(request, (results, status) => {
+    // Use the TextSearch method of the PlacesService
+    placesService.textSearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
             // Clear previous markers
             clearMarkers();
@@ -296,10 +308,38 @@ function searchPlaces(query) {
             
             // If only one result, show its details
             if (results.length === 1) {
-                showPlaceDetails(results[0]);
+                getPlaceDetails(results[0].place_id);
             }
         } else {
             alert('No places found for that query. Please try again.');
+        }
+    });
+}
+
+// Get place details using the new Places API
+function getPlaceDetails(placeId) {
+    const request = {
+        placeId: placeId,
+        fields: [
+            'name', 
+            'place_id', 
+            'formatted_address', 
+            'geometry', 
+            'rating', 
+            'user_ratings_total', 
+            'photos',
+            'formatted_phone_number',
+            'website',
+            'opening_hours',
+            'types'
+        ]
+    };
+    
+    placesService.getDetails(request, (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            showPlaceDetails(place);
+        } else {
+            console.error('Error fetching place details:', status);
         }
     });
 }
@@ -315,7 +355,11 @@ function addMarker(place) {
     
     // Add click event to show place details
     marker.addListener('click', () => {
-        showPlaceDetails(place);
+        if (place.place_id) {
+            getPlaceDetails(place.place_id);
+        } else {
+            showPlaceDetails(place);
+        }
     });
     
     // Add marker to the markers array
@@ -647,32 +691,7 @@ function resetItinerary() {
     clearMarkers();
 }
 
-// Function to add a custom control to the map
-function addCustomMapControl(controlDiv, map, text, title, callback) {
-    // Set CSS for the control border.
-    const controlUI = document.createElement('div');
-    controlUI.style.backgroundColor = '#fff';
-    controlUI.style.border = '2px solid #fff';
-    controlUI.style.borderRadius = '3px';
-    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    controlUI.style.cursor = 'pointer';
-    controlUI.style.marginTop = '10px';
-    controlUI.style.marginRight = '10px';
-    controlUI.style.textAlign = 'center';
-    controlUI.title = title;
-    controlDiv.appendChild(controlUI);
-
-    // Set CSS for the control interior.
-    const controlText = document.createElement('div');
-    controlText.style.color = 'rgb(25,25,25)';
-    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-    controlText.style.fontSize = '16px';
-    controlText.style.lineHeight = '38px';
-    controlText.style.paddingLeft = '5px';
-    controlText.style.paddingRight = '5px';
-    controlText.innerHTML = text;
-    controlUI.appendChild(controlText);
-
-    // Setup the click event listener
-    controlUI.addEventListener('click', callback);
-}
+// Handle potential API loading errors
+window.gm_authFailure = function() {
+    alert('There was an error authenticating with the Google Maps API. Please check your API key.');
+};
