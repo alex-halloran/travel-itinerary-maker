@@ -18,9 +18,13 @@ A web application inspired by Rexby.com that allows users to create travel itine
 1. **Get a Google Maps API Key**
    - Go to the [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or select an existing one
+   - Navigate to APIs & Services > Library
+   - Enable these APIs:
+     - Maps JavaScript API
+     - Places API
    - Navigate to APIs & Services > Credentials
-   - Create an API key and enable the Maps JavaScript API and Places API
-   - Restrict the API key to your domains for security
+   - Create an API key and restrict it to your domains for security
+   - Make sure you have billing set up (required for the Places API)
 
 2. **Set Up the Application**
    - Clone this repository
@@ -53,10 +57,27 @@ A web application inspired by Rexby.com that allows users to create travel itine
 
 ## Implementation Details
 
-- The application uses the Google Maps JavaScript API for map display
-- Google Places API provides place search and details functionality
+- The application uses the latest version of the Google Maps JavaScript API
+- Google Places API v3 is used for place search, autocomplete, and details functionality
 - Local storage is used to save itineraries in the browser
 - No server-side components are required to run the basic application
+
+## Google Places API Updates
+
+This application has been updated to use the latest version of the Google Places API. Key changes include:
+
+- Updated script loading format with the new libraries parameter
+- Added the Autocomplete service for improved search functionality
+- Using the TextSearch method for manual searches
+- More detailed place data retrieval with expanded fields
+- Improved error handling for API-related issues
+
+## Troubleshooting Common Issues
+
+- **API Key Errors**: Make sure your API key is correctly entered and has the necessary APIs enabled
+- **"API Not Activated" Error**: You must enable the Places API and Maps JavaScript API in Google Cloud Console
+- **Billing Required**: Google Maps Platform requires billing to be set up (includes $200 monthly free credit)
+- **CORS Issues**: When testing locally, you might need to use a simple web server
 
 ## Future Enhancements
 
