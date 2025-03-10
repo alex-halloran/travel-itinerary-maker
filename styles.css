@@ -1,0 +1,420 @@
+/* Reset and global styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+    line-height: 1.6;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.primary {
+    background-color: #0066ff;
+    color: white;
+}
+
+.primary:hover {
+    background-color: #0055d4;
+}
+
+.secondary {
+    background-color: white;
+    color: #0066ff;
+    border: 1px solid #0066ff;
+}
+
+.secondary:hover {
+    background-color: #f0f7ff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Header */
+header {
+    background-color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+}
+
+.logo h1 {
+    font-size: 1.8rem;
+    color: #0066ff;
+}
+
+nav ul {
+    display: flex;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    padding: 5px 0;
+    position: relative;
+}
+
+nav ul li a.active:after,
+nav ul li a:hover:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #0066ff;
+}
+
+/* Main container */
+.container {
+    display: flex;
+    height: calc(100vh - 70px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 400px;
+    background-color: white;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.itinerary-header {
+    margin-bottom: 20px;
+}
+
+#itinerary-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+#itinerary-title:focus {
+    border-color: #ccc;
+    outline: none;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-selector input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 40px 10px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-box button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+}
+
+.itinerary-days {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.day-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.day-header {
+    padding: 10px 15px;
+    background-color: #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.places-list {
+    padding: 10px;
+}
+
+.place-item {
+    background-color: white;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.place-time {
+    margin-right: 10px;
+}
+
+.time-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.place-info {
+    flex: 1;
+}
+
+.place-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.place-address {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.place-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.place-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.place-actions button:hover {
+    color: #0066ff;
+}
+
+.itinerary-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+
+/* Map container */
+.map-container {
+    flex: 1;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+#place-details {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 350px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+}
+
+.place-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.place-details-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.stars {
+    margin: 0 5px;
+    color: #ffc107;
+}
+
+.place-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#day-selector {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 600px;
+    max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+/* Saved itineraries */
+.saved-itinerary-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itinerary-name {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.itinerary-dates {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.itinerary-places {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.delete-itinerary {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #dc3545;
+    margin-left: 10px;
+}
+
+.no-itineraries {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: 40%;
+    }
+    
+    .map-container {
+        height: 60%;
+    }
+    
+    #place-details {
+        width: calc(100% - 40px);
+    }
+}
